@@ -1,9 +1,5 @@
 {
-<<<<<<< HEAD
-  "name": "ainstagram-clone-",
-=======
   "name": "instagram-clone",
->>>>>>> 5ade031 (Initialize project using Create React App)
   "version": "0.1.0",
   "private": true,
   "dependencies": {
