@@ -1,31 +1,73 @@
-import React from 'react'
-import styled from 'styled-components'
+import { signInWithEmailAndPassword } from "firebase/auth";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import { auth } from "./firebase";
+
 function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+//   const [{}, dispatch] = useStateValue();
+  const navigate = useNavigate();
+  const login = (e) => {
+    e.preventDefault();
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const newUser = {
+          userName: userCredential.user.displayName,
+          photoURL: userCredential.user.photoURL,
+          email: userCredential.user.email,
+          uid: userCredential.user.uid,
+        };
+
+        // dispatch({
+        //   type: "SET_USER",
+        //   user: newUser,
+        // });
+
+        localStorage.setItem("user", JSON.stringify(newUser));
+        navigate("/");
+      })
+      .catch((err) => alert(err));
+  };
   return (
     <Container>
-        <Main>
-            <Form>
-                <Logo>
-                    <img src = "./instagram-text-logo.png" alt="" />
-                </Logo>
-                <InputContainer>
-                    <input type = "email"placeholder="Email" />
-                </InputContainer>
-                <InputContainer>
-                    <input type = "password"placeholder="Password" />
-                </InputContainer>
-                <button>
-                    Login
-                </button>
-            </Form>
-            <SignUpContainer>
-                <p>
-                    Don't Have an account ? <span>Sign Up</span>
-                </p>
-            </SignUpContainer>
-        </Main>
+      <Main>
+        <Form onSubmit={login}>
+          <Logo>
+            <img src="./instagram-text-logo.png" alt="" />
+          </Logo>
+
+          <InputContainer>
+            <input
+              type="email"
+              placeholder="Email"
+              onChange={(e) => setEmail(e.target.value)}
+              value={email}
+            />
+          </InputContainer>
+          <InputContainer>
+            <input
+              type="password"
+              placeholder="Password"
+              onChange={(e) => setPassword(e.target.value)}
+              value={password}
+            />
+          </InputContainer>
+
+          <button onClick={login}>Log In</button>
+        </Form>
+
+        <SignUpContainer>
+          <p>
+            Don't Have an account ?
+            <span onClick={() => navigate("/signup")}>Sign Up</span>
+          </p>
+        </SignUpContainer>
+      </Main>
     </Container>
-  )
+  );
 }
 
 const Container = styled.div`
