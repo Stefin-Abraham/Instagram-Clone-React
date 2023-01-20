@@ -3,11 +3,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { auth } from "./firebase";
+import { useStateValue } from "../StateProvider";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-//   const [{}, dispatch] = useStateValue();
+  const [{}, dispatch] = useStateValue();
   const navigate = useNavigate();
   const login = (e) => {
     e.preventDefault();
@@ -21,10 +22,10 @@ function Login() {
           uid: userCredential.user.uid,
         };
 
-        // dispatch({
-        //   type: "SET_USER",
-        //   user: newUser,
-        // });
+        dispatch({
+           type: "SET_USER",
+           user: newUser,
+        });
 
         localStorage.setItem("user", JSON.stringify(newUser));
         navigate("/");
