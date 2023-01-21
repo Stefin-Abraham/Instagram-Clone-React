@@ -4,7 +4,7 @@ function Navbar() {
   return (
     <Container>
         <Logo>
-            <img src="./logo.png" ait ="/" />
+            <img src="./logo.png" alt ="/" />
         </Logo>
         <SearchBar>
             <input type="text" placeholder="Search ..."/>
