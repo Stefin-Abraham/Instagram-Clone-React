@@ -1,64 +1,57 @@
-import React from 'react'
-import styled from 'styled-components'
-import { useStateValue } from '../StateProvider';
-import Navbar from './Navbar';
-
+import React, { useEffect, useState } from "react";
+import styled from "styled-components";
+import { useStateValue } from "../StateProvider";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import db from "./firebase";
+import Navbar from "./Navbar";
 function Profile() {
-    const [{ user }] = useStateValue(); 
+  const [{ user }] = useStateValue();
+  const [allPost, setAllPost] = useState([]);
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const q = query(
+        collection(db, "posts"),
+        where("userName", "==", user?.userName)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      setAllPost(querySnapshot.docs);
+    };
+
+    fetchPosts();
+  });
   return (
     <Container>
-        <Navbar/>
-        <Main>
-            <UserProfile>
-                <div className ="user-image">
-                    <img 
-                      src = {user?.photoURL === null ? "./user.png" : user?.photoURL} 
-                      alt="" 
-                    />
-                </div>
-                <h2>{user?.userName}</h2>
-            </UserProfile>
-            <PostContainer>
-                <Post>
-                    <img
-                    src="https://i.insider.com/5eec699d5af6cc4aef004e53?width=700"
-                    />
-                </Post>
-                <Post>
-                    <img
-                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1Qwl8rkc4bHg7Aq-mqgT1DhIp-WUHztQgdg&usqp=CAU"
-                    />
-                </Post>
-                <Post>
-                    <img
-                    src="https://i.insider.com/5eec699d5af6cc4aef004e53?width=700"
-                    />
-                </Post>
-                <Post>
-                    <img
-                    src="https://onextrapixel.com/wp-content/uploads/2012/03/the-road-not-taken.jpg"
-                    />
-                </Post>
-                <Post>
-                    <img
-                    src="https://i.insider.com/5eec699d5af6cc4aef004e53?width=700"
-                    />
-                </Post>
-                <Post>
-                    <img
-                    src="https://theworldpursuit.com/wp-content/uploads/2020/04/Best-Places-to-Visit-in-Africa-4-911x512.jpeg"
-                    />
-                </Post>
-            </PostContainer>
-        </Main>
+      <Navbar />
+      <Main>
+        <UserProfile>
+          <div className="user-image">
+            <img
+              src={user?.photoURL === null ? "./user.png" : user?.photoURL}
+              alt=""
+            />
+          </div>
+
+          <h2>{user?.userName}</h2>
+        </UserProfile>
+        <PostContainer>
+          {allPost.map((post) => (
+            <Post>
+              <img src={post.data().imageURL} alt="" />
+            </Post>
+          ))}
+        </PostContainer>
+      </Main>
     </Container>
-    
   );
 }
+
 const Container = styled.div`
   width: 100%;
   margin-top: 80px;
 `;
+
 const Main = styled.main`
   margin: auto;
   height: fit-content;
@@ -75,21 +68,20 @@ const UserProfile = styled.div`
   border-bottom: 1px solid lightgray;
   padding-bottom: 40px;
 
- .user-image {
-   margin-right: 30px;
-   z-index: -100;
-   width: 155px;
-   height: 155px;
-   img {
+  .user-image {
+    margin-right: 30px;
+    z-index: -100;
+    width: 155px;
+    height: 155px;
+    img {
       width: 100%;
       border-radius: 50%;
     }
- } 
- h2 {
-  font-size: 26px;
-  font-weight: 500;
- }
-
+  }
+  h2 {
+    font-size: 26px;
+    font-weight: 500;
+  }
 `;
 
 const PostContainer = styled.div`
@@ -118,4 +110,4 @@ const Post = styled.div`
   }
 `;
 
-export default Profile
+export default Profile;

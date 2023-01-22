@@ -1,30 +1,42 @@
-import React from "react";
-// import { auth } from "./firebase";
+import React, { useEffect, useState } from "react";
 import { useStateValue } from "../StateProvider";
 import styled from "styled-components";
 import Navbar from "./Navbar";
 import Post from "./Post";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import db from "./firebase";
 function Home() {
   const [{ user }] = useStateValue();
+  const [allPost, setAllPost] = useState([]);
+
+  useEffect(() => {
+    const fetchPosts = () => {
+      const q = query(collection(db, "posts"), orderBy("timeStamp", "desc"));
+
+      onSnapshot(q, (snapshot) => {
+        setAllPost(snapshot.docs);
+      });
+    };
+
+    fetchPosts();
+  });
+
   return (
     <Container>
       <Navbar />
       <Inner>
         <Main>
-            <PostContainer>
-              <Post 
-                userName="Hero" 
-                photoURL="./user.png" 
-                caption = "A tree is a tall plant that can live for a very long time. It has a single stem or trunk and branches that support leaves. Beneath the ground, a tree has a root system that acts as an anchor and stores the water and nutrients the plant needs to grow."
-                imageURL = "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_960_720.jpg"
+          <PostContainer>
+            {allPost.map((post) => (
+              <Post
+                userName={post.data().userName}
+                photoURL={post.data().photoURL}
+                caption={post.data().caption}
+                imageURL={post.data().imageURL}
+                postID={post.id}
               />
-              <Post 
-                userName="Rock" 
-                photoURL="./user.png" 
-                caption = "   A tree is a tall plant that can live for a very long time. It has a single stem or trunk and branches that support leaves. Beneath the ground, a tree has a root system that acts as an anchor and stores the water and nutrients the plant needs to grow."
-                imageURL = "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_960_720.jpg"
-              />
-            </PostContainer>
+            ))}
+          </PostContainer>
         </Main>
       </Inner>
     </Container>
@@ -51,5 +63,4 @@ const PostContainer = styled.div`
   max-width: 620px;
   width: 100%;
 `;
-
 export default Home;
