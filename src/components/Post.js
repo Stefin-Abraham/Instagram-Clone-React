@@ -1,27 +1,103 @@
-import React, { useState } from "react";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import db from "./firebase";
+import { useStateValue } from "../StateProvider";
 
-function Post({ userName, photoURL, caption, imageURL}) {
-    const [moreButton, setMoreButton] = useState(false);
-    return (
+function Post({ userName, photoURL, caption, imageURL, postID }) {
+  const [moreButton, setMoreButton] = useState(false);
+  const [{ user }] = useStateValue();
+
+  const [likesOnPost, setLikesOnPost] = useState({
+    likes: [],
+  });
+
+  const [likeState, setLikeState] = useState({
+    like: likesOnPost?.likes.length > 0 ? likesOnPost?.likes.length : 0,
+    likeActive: false,
+  });
+
+  const handleLike = async (e) => {
+    e.preventDefault();
+
+    if (likesOnPost?.likes.includes(user?.userName)) {
+      // dislike Part
+      const likePayload = {
+        likes: likesOnPost?.likes.filter((likedUser) => {
+          return likedUser !== user?.userName;
+        }),
+      };
+
+      await setDoc(doc(db, "likes", postID), likePayload);
+
+      setLikesOnPost({
+        likes: likePayload.likes,
+      });
+    } else {
+      // like Part
+      const likePayload = {
+        likes: [...likesOnPost.likes, user?.userName],
+      };
+
+      setLikesOnPost(likePayload);
+
+      await setDoc(doc(db, "likes", postID), likePayload);
+
+      setLikesOnPost({
+        likes: likePayload.likes,
+      });
+    }
+  };
+
+  const getLikes = async () => {
+    const docRef = doc(db, "likes", postID);
+
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      setLikesOnPost(docSnap.data());
+    }
+
+    setLikeState({
+      like: docSnap.data()?.likes?.length ? docSnap.data()?.likes?.length : 0,
+      likeActive: docSnap.data().likes?.includes(user?.userName) ? true : false,
+    });
+  };
+
+  useEffect(() => {
+    getLikes();
+  }, [likeState]);
+
+ return (
   <Container>
     <UserInfo>
-        <img src ={photoURL} />
+        <img src ={photoURL} alt="" />
         <p>{userName}</p>
     </UserInfo>
     <Content>
         <img 
           src={imageURL}
-          alt="/"
+          alt=""
         />
     </Content>
     <PostCTA>
-        <CTAButtons>
-            <img src="./heart.png" alt="" />
-            <img src="./chat 1.png" alt="" />
+    <CTAButtons>
+          {likeState.likeActive ? (
+            <img src="./heart (1).png" alt="" onClick={handleLike} />
+          ) : ( 
+            <img src="./heart.png" alt="" onClick={handleLike} />
+          )}
+          <img src="./chat 1.png" alt="" onClick={() => setOpenDialog(true)} />
         </CTAButtons>
         <LikeCount>
-            <p>100 Likes</p>
+            <p>{likesOnPost?.likes.length}likes</p>
         </LikeCount>
         <PostDescription moreButton={moreButton}>
             <h5>{caption}</h5>
@@ -32,6 +108,10 @@ function Post({ userName, photoURL, caption, imageURL}) {
                 </p>
             </div>
         </PostDescription>
+        <CommentInput>
+          <Input type="text" placeholder="Add Comment" />
+          <button>Post</button>
+        </CommentInput>
     </PostCTA>
   </Container>
   );
@@ -144,5 +224,57 @@ const PostDescription = styled.div`
     }
   }
 `;
+const CommentInput = styled.div`
+  padding: 10px 0px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid lightgray;
 
+  input {
+    flex: 0.9;
+    height: 30px;
+    border: none;
+    margin-right: 10px;
+    outline: none;
+  }
+
+  button {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    color: #18a4f8;
+  }
+`;
+
+// const AllCommentContainer = styled.div`
+//   padding: 15px;
+
+//   .post-comment {
+//     display: flex;
+//     align-items: center;
+//     margin-bottom: 15px;
+
+//     .user-image {
+//       margin-right: 20px;
+//       img {
+//         width: 28px;
+//         height: 28px;
+//         border-radius: 50%;
+//       }
+//     }
+
+//     .user-comment {
+//       display: flex;
+
+//       font-size: 13px;
+
+//       strong {
+//         margin-right: 10px;
+//       }
+//     }
+//   }
+// `;
 export default Post;
