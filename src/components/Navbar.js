@@ -1,6 +1,26 @@
-import React from 'react';
+import { signOut } from "firebase/auth";
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import { auth } from "./firebase";
+import { useStateValue } from "../StateProvider";
+import { useNavigate } from "react-router-dom";
+
 function Navbar() {
+   const [{ user }, dispatch] = useStateValue();
+   const [openMenu, setOpenMenu] = useState(false);
+   const navigate = useNavigate();
+   const logOut = (e) => {
+    signOut(auth)
+      .then(() => {
+        localStorage.removeItem("user");
+        dispatch({
+          type: "SET_USER",
+          user: null,
+        });
+        navigate("/login");
+      })
+      .catch((err) => alert(err));
+  };
   return (
     <Container>
         <Logo>
@@ -19,11 +39,20 @@ function Navbar() {
             <Icon>
                 <img src="./47-chat (1).svg" alt="/" />
             </Icon>
-            <Icon>
-                <img src="./user.png" alt="" />
-            </Icon>
+             <Icon>
+                <img 
+                  src={user?.photoURL === null ? "./user.png" : user?.photoURL}
+                  alt=""
+                  onClick={() => setOpenMenu(!openMenu)}
+                />
+                <Menu openMenu={openMenu}>
+                  <MenuElement onClick={() => navigate("/profile")}>
+                    Profile
+                  </MenuElement>
+                  <MenuElement onClick={logOut}>Logout</MenuElement>
+                </Menu>
+            </Icon>  
         </Icons>
-
     </Container>
    
   );
@@ -90,22 +119,40 @@ const Icons = styled.div`
 `;
 
 const Icon = styled.div`
-    width: 35px;
-    height: 35px;
-    cursor: pointer;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
 
+  img {
+    width: 25px;
+    height: 25px;
+  }
+
+  &:nth-child(4) {
     img {
-     width: 25px;
-     height: 25px;
+      border-radius: 50%;
     }
-
-    &:nth-child(4) {
-     img {
-        border-radius: 50%;
-      }
       position: relative;
-    }
+  }
 
+`;
+const Menu = styled.div`
+  position: relative;
+  bottom: -8px;
+  display: ${(props) => (props.openMenu ? "block" : "none")};
+  background: #fff;
+  width: 100px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+`;
+const MenuElement = styled.div`
+  height: 20px;
+  color: gray;
+  border-bottom: 1px solid lightgray;
+  padding: 10px;
+  &:hover {
+    background-color: #e4e4e4;
+  }
 `;
 
 export default Navbar;
