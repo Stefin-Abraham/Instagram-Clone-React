@@ -1,14 +1,4 @@
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-} from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, setDoc, } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import db from "./firebase";
