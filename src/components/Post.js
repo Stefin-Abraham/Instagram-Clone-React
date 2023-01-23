@@ -14,9 +14,7 @@ import styled from "styled-components";
 import db from "./firebase";
 import { useStateValue } from "../StateProvider";
 import Dialog from "@mui/material/Dialog";
-
 import DialogContent from "@mui/material/DialogContent";
-
 import DialogTitle from "@mui/material/DialogTitle";
 function Post({ userName, photoURL, caption, imageURL, postID }) {
   const [moreButton, setMoreButton] = useState(false);
