@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { auth } from "./firebase";
 import { useStateValue } from "../StateProvider";
-
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,8 +22,8 @@ function Login() {
         };
 
         dispatch({
-           type: "SET_USER",
-           user: newUser,
+          type: "SET_USER",
+          user: newUser,
         });
 
         localStorage.setItem("user", JSON.stringify(newUser));
@@ -72,26 +71,25 @@ function Login() {
 }
 
 const Container = styled.div`
- width: 100vw;
- height: 100vh;
- display: flex;
- align-items: center;
- justify-content: center;
-
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
-const Main = styled.div``;
+const Main = styled.main``;
 
 const Form = styled.form`
-    background: #fff;
-    border: 1px solid lightgray;
-    padding: 20px;
-    min-width: 300px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 400px;
+  background: #fff;
+  border: 1px solid lightgray;
+  padding: 20px;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
 
   button {
     height: 33px;
@@ -103,28 +101,28 @@ const Form = styled.form`
     margin-top: 30px;
     font-size: 14px;
     color: #fff;
-    cursor: pointer;   
+    cursor: pointer;
   }
 `;
 
 const Logo = styled.div`
   width: 250px;
-  img{
+  img {
     width: 100%;
- }
+  }
 `;
 
-const  InputContainer = styled.div`
- height: 25px;
- width: 250px;
- margin-top: 20px;
- input {
-  height: 100%;
-  width: 100%;
-  background-color: #fafafa;
-  border: 1px solid gray;
-  padding: 5px;
-}
+const InputContainer = styled.div`
+  height: 25px;
+  width: 250px;
+  margin-top: 20px;
+  input {
+    height: 100%;
+    width: 100%;
+    background-color: #fafafa;
+    border: 1px solid gray;
+    padding: 5px;
+  }
 `;
 
 const SignUpContainer = styled.div`

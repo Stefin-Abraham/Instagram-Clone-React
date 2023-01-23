@@ -3,6 +3,9 @@ import {
   collection,
   doc,
   getDoc,
+  onSnapshot,
+  orderBy,
+  query,
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
@@ -10,7 +13,11 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import db from "./firebase";
 import { useStateValue } from "../StateProvider";
+import Dialog from "@mui/material/Dialog";
 
+import DialogContent from "@mui/material/DialogContent";
+
+import DialogTitle from "@mui/material/DialogTitle";
 function Post({ userName, photoURL, caption, imageURL, postID }) {
   const [moreButton, setMoreButton] = useState(false);
   const [{ user }] = useStateValue();
@@ -24,6 +31,15 @@ function Post({ userName, photoURL, caption, imageURL, postID }) {
     likeActive: false,
   });
 
+  const [commentsOnPost, setCommentsOnPost] = useState([]);
+
+  const [commentState, setCommentState] = useState({
+    comments: commentsOnPost?.length > 0 ? commentsOnPost?.length : 0,
+  });
+
+  const [commentInput, setCommentInput] = useState("");
+
+  const [openDialog, setOpenDialog] = useState(false);
   const handleLike = async (e) => {
     e.preventDefault();
 
@@ -75,45 +91,115 @@ function Post({ userName, photoURL, caption, imageURL, postID }) {
     getLikes();
   }, [likeState]);
 
- return (
-  <Container>
-    <UserInfo>
-        <img src ={photoURL} alt="" />
+  const handleComment = async (e) => {
+    e.preventDefault();
+
+    if (commentInput.length > 0) {
+      let payload = {
+        commentInput,
+        userName: user?.userName,
+        photoURL: user?.photoURL,
+        timeStamp: serverTimestamp(),
+      };
+
+      const docRef = doc(db, "comments", postID);
+
+      addDoc(collection(docRef, "list"), payload);
+
+      setCommentInput("");
+    } else {
+      alert("Please Fill up the blank");
+    }
+  };
+
+  const getComments = async () => {
+    const q = query(
+      collection(db, "comments", postID, "list"),
+      orderBy("timeStamp", "desc")
+    );
+
+    onSnapshot(q, (snapshot) => {
+      setCommentsOnPost(snapshot.docs);
+      setCommentState({
+        comments: snapshot.docs.length,
+      });
+    });
+  };
+
+  useEffect(() => {
+    getComments();
+  }, [commentState]);
+
+  return (
+    <Container>
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Comments</DialogTitle>
+        <DialogContent>
+          <AllCommentContainer>
+            {commentsOnPost.map((comment) => (
+              <div className="post-comment">
+                <div className="user-image">
+                  <img src={comment.data().photoURL} alt="" />
+                </div>
+                <div className="user-comment">
+                  <strong>{comment?.data().userName}</strong>
+                  <p>{comment?.data().commentInput}</p>
+                </div>
+              </div>
+            ))}
+          </AllCommentContainer>
+        </DialogContent>
+      </Dialog>
+      <UserInfo>
+        <img src={photoURL} alt="" />
         <p>{userName}</p>
-    </UserInfo>
-    <Content>
-        <img 
-          src={imageURL}
-          alt=""
-        />
-    </Content>
-    <PostCTA>
-    <CTAButtons>
+      </UserInfo>
+      <Content>
+        <img src={imageURL} alt="" />
+      </Content>
+      <PostCTA>
+        <CTAButtons>
           {likeState.likeActive ? (
             <img src="./heart (1).png" alt="" onClick={handleLike} />
-          ) : ( 
+          ) : (
             <img src="./heart.png" alt="" onClick={handleLike} />
           )}
           <img src="./chat 1.png" alt="" onClick={() => setOpenDialog(true)} />
         </CTAButtons>
         <LikeCount>
-            <p>{likesOnPost?.likes.length}likes</p>
+          <p>{likesOnPost?.likes.length} likes</p>
         </LikeCount>
         <PostDescription moreButton={moreButton}>
-            <h5>{caption}</h5>
-            <div className="description-buttons">
-                <p>view all comments</p>
-                <p onClick={() => setMoreButton(!moreButton)}>
-                    {moreButton ? "less" : "more"}
-                </p>
-            </div>
+          <h5>{caption}</h5>
+
+          <div className="recent-comment">
+            <strong>{commentsOnPost[0]?.data().userName}</strong>
+            <p>{commentsOnPost[0]?.data().commentInput}</p>
+          </div>
+
+          <div className="description-buttons">
+            <p onClick={() => setOpenDialog(true)}>view all comments</p>
+            <p onClick={() => setMoreButton(!moreButton)}>
+              {moreButton ? "less" : "more"}
+            </p>
+          </div>
         </PostDescription>
         <CommentInput>
-          <Input type="text" placeholder="Add Comment" />
-          <button>Post</button>
+          <input
+            type="text"
+            placeholder="Add Comment"
+            onChange={(e) => setCommentInput(e.target.value)}
+            value={commentInput}
+          />
+          <button onClick={handleComment}>Post</button>
         </CommentInput>
-    </PostCTA>
-  </Container>
+      </PostCTA>
+    </Container>
   );
 }
 
@@ -224,6 +310,7 @@ const PostDescription = styled.div`
     }
   }
 `;
+
 const CommentInput = styled.div`
   padding: 10px 0px;
   width: 100%;
@@ -249,32 +336,32 @@ const CommentInput = styled.div`
   }
 `;
 
-// const AllCommentContainer = styled.div`
-//   padding: 15px;
+const AllCommentContainer = styled.div`
+  padding: 15px;
 
-//   .post-comment {
-//     display: flex;
-//     align-items: center;
-//     margin-bottom: 15px;
+  .post-comment {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
 
-//     .user-image {
-//       margin-right: 20px;
-//       img {
-//         width: 28px;
-//         height: 28px;
-//         border-radius: 50%;
-//       }
-//     }
+    .user-image {
+      margin-right: 20px;
+      img {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+      }
+    }
 
-//     .user-comment {
-//       display: flex;
+    .user-comment {
+      display: flex;
 
-//       font-size: 13px;
+      font-size: 13px;
 
-//       strong {
-//         margin-right: 10px;
-//       }
-//     }
-//   }
-// `;
+      strong {
+        margin-right: 10px;
+      }
+    }
+  }
+`;
 export default Post;
